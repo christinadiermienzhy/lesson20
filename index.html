@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>
+		
+	</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="assets/style/style.css">
+</head>
+<body>
+	<script type="text/javascript">
+
+		const saveTaskList = ()=>{ localStorage.setItem('savedTasks', JSON.stringify(toDoList.tasks));
+		}
+
+		let today = new Date();
+		let dd = today.getDate();
+		let mm = today.getMonth()+1;
+		let yyyy = today.getFullYear();
+			if(dd<10) {
+			    dd = '0'+dd
+			} 
+			if(mm<10) {
+			    mm = '0'+mm
+			} 
+		today = dd + '/' + mm + '/' + yyyy;
+
+		const toDoList = {
+			tasks: [],
+			createTasks ( taskText, taskStatus ) {
+				let currentTaskIndex = this.tasks.findIndex ( function ( task ) {
+
+					if (( task.text ).toUpperCase () === taskText.toUpperCase () ) {
+								return task;
+					}
+				})
+					if 	( currentTaskIndex >= 0 ) {
+						alert( 'Такая заметка уже существует!' )
+					} else {
+						this.tasks.push ( {
+							text : taskText,
+							creationDate : today,
+							status : taskStatus||false,
+							id : (Math.random()*1000000).toFixed(0)
+						})
+						
+						saveTaskList();
+
+					 	const taskId = (this.tasks.find ( element => {
+					 	 		return element.text === taskText;
+					 	 	}).id);
+
+				const taskItem = document.createElement ( 'li' ) ;
+					taskItem.setAttribute ( 'id', taskId ); 
+				const taskItemBlock = document.createElement ( 'div' );
+					taskItemBlock.classList.add('taskTextBlock');
+					taskItemBlock.innerText = taskText;
+				 const buttonsBlock  = document.createElement ( 'div' );
+				 	buttonsBlock.classList.add('buttonsBlock');
+
+				document.querySelector ( '.taskList' ) .prepend( taskItem );
+				document.querySelector ( 'li:first-child' ).prepend( taskItemBlock );
+				document.querySelector ( 'li:first-child' ).append( buttonsBlock );
+
+
+				const deleteButton = document.createElement( 'button' );
+					deleteButton.classList.add( 'deleteTaskfromList' );
+					deleteButton.innerText = 'Remove';
+					document.querySelector( '.buttonsBlock' ).append( deleteButton );
+					deleteButton.addEventListener( 'click', function ( event ) {
+						toDoList.deleteTasks ( taskId );
+					})
+
+				const editButton = document.createElement ( 'button' ) ;
+					editButton.classList.add ( 'editTask' ) ;
+					editButton.innerText = 'Edit';
+					document.querySelector ( '.buttonsBlock' ) .append ( editButton ) ;
+					editButton.addEventListener ('click', function ( event ) {
+						const newText = prompt ( 'Введите новое содержание заметки' ) ;
+						if (newText===null ){
+							return alert ( 'Изменения не сохранены!');
+						} else if (newText.length>0){
+							toDoList.editTasks ( taskId, newText ) ;	
+						} else {
+							return alert ( 'Заметка не может быть пустой!');
+						}		
+					})
+
+				const changeStatusButton = document.createElement( 'button' );
+					changeStatusButton.classList.add ( 'changeStatus' ) ;
+					changeStatusButton.innerText = 'Done';
+					document.querySelector ( '.buttonsBlock' ).append( changeStatusButton );
+						if (taskStatus===true){
+							changeStatusButton.setAttribute ( 'disabled',false ) ;
+							editButton.setAttribute ( 'disabled',false ) ;
+							document.querySelector( 'li:first-child' ).classList.add ( 'inactive' ) ;
+						}
+					changeStatusButton.addEventListener( 'click', function ( event ) {
+						toDoList.checkDone( taskId );
+						changeStatusButton.setAttribute ( 'disabled',false ) ;
+						editButton.setAttribute ( 'disabled',false ) ;
+						event.target.parentElement.parentElement.classList.add ( 'inactive' ) ;
+					})
+						}	
+			},
+			deleteTasks ( id, verificationStatus ){
+				const verificationStatusDelete = confirm ('Вы уверены, что необходимо удалить выбранную заметку?');
+						let currentTaskIndex = this.tasks.findIndex (task => ( task.id === id ) );
+
+						if ( verificationStatusDelete === true ) {
+							this.tasks.splice ( currentTaskIndex, 1);
+							saveTaskList();
+							event.target.parentElement.parentElement.remove();
+						}
+			},
+			editTasks ( id, editedTask,verificationStatus ) {
+						let currentTaskIndex = this.tasks.findIndex (task => ( task.id === id ) );
+				
+						const verificationStatusEdit = confirm ( 'Сохранить сделанные изменения?' ) ;
+						if ( verificationStatusEdit === true ) {
+							if ( editedTask.length > 0 ) {
+								let currentTaskIndexEdit = this.tasks.findIndex ( function ( task ) {
+										if ((task.text).toUpperCase() === editedTask.toUpperCase()){
+											return task;
+										}
+									})
+									if 	( currentTaskIndexEdit >= 0 ) {
+										alert('Такая заметка уже существует!')
+									} else {
+										this.tasks[currentTaskIndex].text = editedTask;
+										saveTaskList();
+										event.target.parentElement.parentElement.querySelector ( '.taskTextBlock' ).innerText = editedTask;
+									}
+							}  else {
+							return alert ( 'Заметка не может быть пустой!');
+							}
+						}							
+			},
+			checkDone (id) {	
+						this.tasks [ this.tasks.findIndex ( item => ( item.id === id )) ].status =! this.tasks [ this.tasks.findIndex ( item => ( item.id === id )) ].status ;
+						saveTaskList();
+					}
+		};
+
+		const createToDolit = function ( ) {
+			const formBlock = document.createElement ( 'form' ) ;
+			formBlock.setAttribute ( 'name','ToDoList' ) ;
+			formBlock.classList.add ( 'toDoForm' ) ;
+
+			const labelElement = document.createElement ( 'label' ) ;
+				labelElement.setAttribute ('for','inputId' ) ;
+				labelElement.innerText = ( 'Введите свою заметку и кликните на кнопку Add' ) ;
+
+			const inputBlock = document.createElement ( 'input' ) ;
+				inputBlock.setAttribute ( 'type','text' ) ;
+				inputBlock.setAttribute ( 'class','inputField' ) ;
+				inputBlock.setAttribute ( 'id','inputId' ) ;
+				inputBlock.setAttribute ( 'placeholder','Напишите заметку');
+
+			const sendButton = document.createElement ( 'button' ) ;
+				sendButton.setAttribute ( 'type','Submit' ) ;
+				sendButton.innerText = ( 'Add' );
+				sendButton.classList.add ('submitNewTask');
+
+			const tasksBlock  = document.createElement ( 'div' ) ;
+				tasksBlock.classList.add ( 'tasksBlock' ) ;
+
+			const tasksBlockList = document.createElement ( 'ul' ) ;
+				tasksBlockList.classList.add ( 'taskList' ) ;
+
+				document.body.prepend ( tasksBlock ) ;
+				document.body.prepend ( formBlock ) ;
+				document.body.querySelector ( 'form' ).prepend ( inputBlock ) ;
+				document.body.querySelector ( 'form' ).prepend ( labelElement ) ;
+				document.body.querySelector ( 'form' ).append( sendButton );
+				document.body.querySelector ( 'div' ).append( tasksBlockList );
+
+				const submitButton = document.querySelector ( '.submitNewTask' );
+				    submitButton.addEventListener ( 'click', function ( event ) {
+				 		event.preventDefault ();
+				 		const addedValue = document.querySelector ( 'input' ) .value;
+					 		if  ( addedValue.length === 0 ) {
+								return alert ( 'Заметка не может быть пустой!' ) ;
+							} else {
+								toDoList.createTasks ( addedValue ) ;
+					 	 		document.querySelector ( 'input' ).value = '';
+							}				 	 	
+				 	})
+		}
+
+		const savedTasks = localStorage.getItem('savedTasks');
+		createToDolit();
+			if (savedTasks)		{
+				JSON.parse(savedTasks).forEach(item=>toDoList.createTasks (item.text, item.status));
+			}
+	</script>
+</body>
+</html>
